@@ -27,10 +27,18 @@ public class MyPoint {
 	}
 
 	@Override
+	public int hashCode() {
+		// TODO Auto-generated method stub
+		long bits = java.lang.Double.doubleToLongBits(getRow());
+		bits ^= java.lang.Double.doubleToLongBits(getCol()) * 31;
+		return (((int) bits) ^ ((int) (bits >> 32)));
+	}
+
+	@Override
 	public boolean equals(Object arg0) {
 		// TODO Auto-generated method stub
 		if (!(arg0 instanceof MyPoint))
-			return false;
+			return super.equals(arg0);
 		MyPoint point = (MyPoint) arg0;
 		return (point.getRow() == row) && (point.getCol() == col);
 	}

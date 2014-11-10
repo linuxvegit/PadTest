@@ -16,9 +16,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.swing.JPanel;
 import javax.swing.plaf.SliderUI;
@@ -42,7 +45,7 @@ public class PlayPanel extends JPanel {
 	private int emptyRow;
 	private int emptyCol;
 
-	private List<MyPoint> eliminateBeads;
+	private Set<MyPoint> eliminateBeads;
 	private List<ArrayList<MyPoint>> eliminateList;
 
 	public PlayPanel() {
@@ -130,7 +133,7 @@ public class PlayPanel extends JPanel {
 		else
 			eliminateList.clear();
 		if (eliminateBeads == null)
-			(eliminateBeads = new ArrayList<MyPoint>()).clear();
+			(eliminateBeads = new HashSet<MyPoint>()).clear();
 		else
 			eliminateBeads.clear();
 		for (int row = 0; row < ROWS; ++row) {
@@ -256,10 +259,16 @@ public class PlayPanel extends JPanel {
 		Queue<MyPoint> queue = new LinkedList<MyPoint>();
 		while (!eliminateBeads.isEmpty()) {
 			queue.clear();
-			queue.offer(eliminateBeads.get(0));
+			// queue.offer(eliminateBeads.get(0));
+			// ArrayList<MyPoint> list = new ArrayList<MyPoint>();
+			// list.add(eliminateBeads.get(0));
+			// eliminateBeads.remove(0);
+			Iterator<MyPoint> iter = eliminateBeads.iterator();
+			MyPoint aPoint = iter.next();
+			queue.add(aPoint);
 			ArrayList<MyPoint> list = new ArrayList<MyPoint>();
-			list.add(eliminateBeads.get(0));
-			eliminateBeads.remove(0);
+			list.add(aPoint);
+			eliminateBeads.remove(aPoint);
 			while (!queue.isEmpty()) {
 				MyPoint center = queue.poll();
 				// UP
