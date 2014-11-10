@@ -5,7 +5,6 @@ public class MyPoint {
 	int col;
 
 	public MyPoint(int row, int col) {
-		// TODO Auto-generated constructor stub
 		this.row = row;
 		this.col = col;
 	}
@@ -28,7 +27,6 @@ public class MyPoint {
 
 	@Override
 	public int hashCode() {
-		// TODO Auto-generated method stub
 		long bits = java.lang.Double.doubleToLongBits(getRow());
 		bits ^= java.lang.Double.doubleToLongBits(getCol()) * 31;
 		return (((int) bits) ^ ((int) (bits >> 32)));
@@ -36,7 +34,6 @@ public class MyPoint {
 
 	@Override
 	public boolean equals(Object arg0) {
-		// TODO Auto-generated method stub
 		if (!(arg0 instanceof MyPoint))
 			return super.equals(arg0);
 		MyPoint point = (MyPoint) arg0;
