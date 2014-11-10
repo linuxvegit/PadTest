@@ -13,6 +13,8 @@ import java.util.Queue;
 public class PlayPanel extends JPanel {
     private static final int ROWS = 5;
     private static final int COLS = 6;
+    private static final int ELIMINATEDELAY = 300;
+    private static final int FALLDELAY = 200;
 
     private static final Color[] COLORS = {Color.RED, Color.BLUE, Color.GREEN,
             Color.YELLOW, Color.MAGENTA, Color.PINK};
@@ -25,6 +27,7 @@ public class PlayPanel extends JPanel {
     private boolean canMove = true;
 
     private ColorEllipse[][] ellipse2ds = new ColorEllipse[ROWS][COLS];
+    //    private ColorEllipse[][] ellipsesTemp = new ColorEllipse[ROWS][COLS];
     private ColorEllipse current = null;
     private int emptyRow;
     private int emptyCol;
@@ -40,7 +43,6 @@ public class PlayPanel extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        // TODO Auto-generated method stub
         super.paintComponent(g);
         if (!initialized) {
             freshSize(true);
@@ -74,14 +76,14 @@ public class PlayPanel extends JPanel {
                 if (ellipse != null) {
                     graphics2d.setPaint(ellipse.getColor());
                     graphics2d.fill(ellipse);
-                    graphics2d.draw(ellipse);
+//                    graphics2d.draw(ellipse);
                 }
             }
         }
         if (current != null) {
             graphics2d.setPaint(current.getColor());
             graphics2d.fill(current);
-            graphics2d.draw(current);
+//            graphics2d.draw(current);
         }
     }
 
@@ -96,6 +98,7 @@ public class PlayPanel extends JPanel {
             emptyCol = col;
             ellipse.setFrame(point.getX() - beadWidth / 2, point.getY()
                     - beadWidth / 2, beadWidth, beadWidth);
+//            paint(this.getGraphics());
             repaint();
             return ellipse;
         }
@@ -111,7 +114,7 @@ public class PlayPanel extends JPanel {
                     beadWidth, beadWidth);
             current = null;
         }
-        repaint();
+        paint(this.getGraphics());
     }
 
     public boolean checkAndEliminate() {
@@ -123,7 +126,8 @@ public class PlayPanel extends JPanel {
             (eliminateBeads = new HashSet<MyPoint>()).clear();
         else
             eliminateBeads.clear();
-        for (int row = 0; row < ROWS; ++row) {
+//        for (int row = 0; row < ROWS; ++row) {
+        for (int row = ROWS - 1; row >= 0; --row) {
             for (int col = 1; col < COLS - 1; ++col) {
                 col = checkRowBead(row, col);
             }
@@ -151,7 +155,16 @@ public class PlayPanel extends JPanel {
                 MyPoint point = list.get(j);
                 ellipse2ds[point.getRow()][point.getCol()] = null;
             }
+//            if (!initialized)
             repaint();
+//            else {
+//                paint(this.getGraphics());
+//                try {
+//                    Thread.sleep(ELIMINATEDELAY);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
         }
         eliminateBeads.clear();
     }
@@ -175,18 +188,21 @@ public class PlayPanel extends JPanel {
                                 break;
                             }
                         }
-                        if (noOne)
-                            ellipse2ds[i][j] = new ColorEllipse(
+                        if (noOne) {
+                            ellipse2ds[0][j] = new ColorEllipse(
                                     j * beadWidth,
-                                    i * beadWidth,
+                                    0 * beadWidth,
                                     beadWidth,
                                     beadWidth,
                                     COLORS[(int) (Math.random() * COLORS.length)]);
+                            beadMotion(0, j, i, j);
+                        }
                     }
                 }
             }
         }
-        repaint();
+//        repaint();
+        paint(this.getGraphics());
         canMove = true;
     }
 
@@ -346,10 +362,33 @@ public class PlayPanel extends JPanel {
         newCol = correctCol(newCol);
         if (ellipse2ds[newRow][newCol] != null)
             return;
+        final int toRow = newRow, toCol = newCol, fromRow = oldRow, fromCol = oldCol;
         ellipse2ds[newRow][newCol] = ellipse2ds[oldRow][oldCol];
-        ellipse2ds[newRow][newCol].setFrame(newCol * beadWidth, newRow
-                * beadWidth, beadWidth, beadWidth);
         ellipse2ds[oldRow][oldCol] = null;
+//        ellipse2ds[newRow][newCol].setFrame(newCol * beadWidth, newRow
+//                * beadWidth, beadWidth, beadWidth);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                double rowSign = Math.signum(toRow - fromRow);
+                double colSign = Math.signum(toCol - fromCol);
+                double i = fromRow + 0.5 * rowSign, j = fromCol + 0.5 * colSign;
+                do {
+                    if (ellipse2ds[toRow][toCol] == null) return;
+                    ellipse2ds[toRow][toCol].setFrame(j * beadWidth, i * beadWidth, beadWidth, beadWidth);
+                    paint(PlayPanel.this.getGraphics());
+                    try {
+                        Thread.sleep(15);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    i += rowSign * 0.2;
+                    j += colSign * 0.2;
+                } while (Math.signum(toRow - i) == rowSign && Math.signum(toCol - j) == colSign);
+                ellipse2ds[toRow][toCol].setFrame(toCol * beadWidth, toRow * beadWidth, beadWidth, beadWidth);
+                paint(PlayPanel.this.getGraphics());
+            }
+        }).start();
     }
 
     private class MouseHandler extends MouseAdapter {
@@ -369,8 +408,9 @@ public class PlayPanel extends JPanel {
             if (!canMove)
                 return;
             drop(e.getPoint());
-            while (isSwap && checkAndEliminate())
+            while (isSwap && checkAndEliminate()) {
                 fallBeads();
+            }
             isSwap = false;
         }
     }
@@ -396,7 +436,6 @@ public class PlayPanel extends JPanel {
                     emptyRow = row;
                     emptyCol = col;
                 }
-
                 repaint();
             }
         }
