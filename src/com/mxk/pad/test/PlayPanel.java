@@ -46,9 +46,14 @@ public class PlayPanel extends JPanel {
         super.paintComponent(g);
         if (!initialized) {
             freshSize(true);
-            while (checkAndEliminate())
-                fallBeads();
-            initialized = true;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (checkAndEliminate())
+                        fallBeads();
+                    initialized = true;
+                }
+            }).start();
         }
         Graphics2D graphics2d = (Graphics2D) g;
         drawBeads(graphics2d);
@@ -114,7 +119,8 @@ public class PlayPanel extends JPanel {
                     beadWidth, beadWidth);
             current = null;
         }
-        paint(this.getGraphics());
+//        paint(this.getGraphics());
+        repaint();
     }
 
     public boolean checkAndEliminate() {
@@ -155,16 +161,16 @@ public class PlayPanel extends JPanel {
                 MyPoint point = list.get(j);
                 ellipse2ds[point.getRow()][point.getCol()] = null;
             }
-//            if (!initialized)
-            repaint();
-//            else {
-//                paint(this.getGraphics());
-//                try {
-//                    Thread.sleep(ELIMINATEDELAY);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
+            if (!initialized)
+                repaint();
+            else {
+                repaint();
+                try {
+                    Thread.sleep(ELIMINATEDELAY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         eliminateBeads.clear();
     }
@@ -201,8 +207,8 @@ public class PlayPanel extends JPanel {
                 }
             }
         }
-//        repaint();
-        paint(this.getGraphics());
+        repaint();
+//        paint(this.getGraphics());
         canMove = true;
     }
 
@@ -262,10 +268,6 @@ public class PlayPanel extends JPanel {
         Queue<MyPoint> queue = new LinkedList<MyPoint>();
         while (!eliminateBeads.isEmpty()) {
             queue.clear();
-            // queue.offer(eliminateBeads.get(0));
-            // ArrayList<MyPoint> list = new ArrayList<MyPoint>();
-            // list.add(eliminateBeads.get(0));
-            // eliminateBeads.remove(0);
             Iterator<MyPoint> iter = eliminateBeads.iterator();
             MyPoint aPoint = iter.next();
             queue.add(aPoint);
@@ -376,17 +378,18 @@ public class PlayPanel extends JPanel {
                 do {
                     if (ellipse2ds[toRow][toCol] == null) return;
                     ellipse2ds[toRow][toCol].setFrame(j * beadWidth, i * beadWidth, beadWidth, beadWidth);
-                    paint(PlayPanel.this.getGraphics());
+                    repaint();
                     try {
-                        Thread.sleep(15);
+                        Thread.sleep(20);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     i += rowSign * 0.2;
                     j += colSign * 0.2;
                 } while (Math.signum(toRow - i) == rowSign && Math.signum(toCol - j) == colSign);
+                if (ellipse2ds[toRow][toCol] == null) return;
                 ellipse2ds[toRow][toCol].setFrame(toCol * beadWidth, toRow * beadWidth, beadWidth, beadWidth);
-                paint(PlayPanel.this.getGraphics());
+                repaint();
             }
         }).start();
     }
@@ -408,10 +411,20 @@ public class PlayPanel extends JPanel {
             if (!canMove)
                 return;
             drop(e.getPoint());
-            while (isSwap && checkAndEliminate()) {
-                fallBeads();
-            }
-            isSwap = false;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (isSwap && checkAndEliminate()) {
+                        fallBeads();
+                        try {
+                            Thread.sleep(FALLDELAY);
+                        } catch (InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                    isSwap = false;
+                }
+            }).start();
         }
     }
 
