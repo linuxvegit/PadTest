@@ -27,7 +27,6 @@ public class PlayPanel extends JPanel {
     private boolean canMove = true;
 
     private ColorEllipse[][] ellipse2ds = new ColorEllipse[ROWS][COLS];
-    //    private ColorEllipse[][] ellipsesTemp = new ColorEllipse[ROWS][COLS];
     private ColorEllipse current = null;
     private int emptyRow;
     private int emptyCol;
@@ -36,7 +35,6 @@ public class PlayPanel extends JPanel {
     private List<ArrayList<MyPoint>> eliminateList;
 
     public PlayPanel() {
-        // TODO Auto-generated constructor stub
         addMouseListener(new MouseHandler());
         addMouseMotionListener(new MouseMotionHandler());
     }
@@ -46,14 +44,6 @@ public class PlayPanel extends JPanel {
         super.paintComponent(g);
         if (!initialized) {
             freshSize(true);
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    while (checkAndEliminate())
-//                        fallBeads();
-//                    initialized = true;
-//                }
-//            }).start();
             while (checkAndEliminate()) fallBeads();
             initialized = true;
         }
@@ -65,16 +55,13 @@ public class PlayPanel extends JPanel {
         width = getWidth();
         height = getHeight();
         beadWidth = Math.min(width / COLS, height / ROWS);
-        for (int i = 0; i < ROWS; ++i) {
-            for (int j = 0; j < COLS; ++j) {
+        for (int i = 0; i < ROWS; ++i)
+            for (int j = 0; j < COLS; ++j)
                 if (randomize)
-                    ellipse2ds[i][j] = new ColorEllipse(j * beadWidth, i
-                            * beadWidth, beadWidth, beadWidth,
+                    ellipse2ds[i][j] = new ColorEllipse(j * beadWidth, i * beadWidth, beadWidth, beadWidth,
                             COLORS[(int) (Math.random() * COLORS.length)]);
                 else
                     ellipse2ds[i][j].setFrame(j * beadWidth, i * beadWidth, beadWidth, beadWidth);
-            }
-        }
     }
 
     private void drawBeads(Graphics2D graphics2d) {
@@ -83,87 +70,65 @@ public class PlayPanel extends JPanel {
                 if (ellipse != null) {
                     graphics2d.setPaint(ellipse.getColor());
                     graphics2d.fill(ellipse);
-//                    graphics2d.draw(ellipse);
                 }
             }
         }
         if (current != null) {
             graphics2d.setPaint(current.getColor());
             graphics2d.fill(current);
-//            graphics2d.draw(current);
         }
     }
 
     private ColorEllipse findAndTake(Point2D point) {
         int col = correctCol(point);
         int row = correctRow(point);
-        if (ellipse2ds[row][col] != null
-                && ellipse2ds[row][col].contains(point)) {
+        if (ellipse2ds[row][col] != null && ellipse2ds[row][col].contains(point)) {
             ColorEllipse ellipse = ellipse2ds[row][col];
             ellipse2ds[row][col] = null;
             emptyRow = row;
             emptyCol = col;
-            ellipse.setFrame(point.getX() - beadWidth / 2, point.getY()
-                    - beadWidth / 2, beadWidth, beadWidth);
-//            paint(this.getGraphics());
+            ellipse.setFrame(point.getX() - beadWidth / 2, point.getY() - beadWidth / 2, beadWidth, beadWidth);
             repaint();
             return ellipse;
         }
         return null;
     }
 
-    private void drop(Point2D point) {
+    private void drop() {
         if (current != null) {
-            int col = correctCol(point);
-            int row = correctRow(point);
             ellipse2ds[emptyRow][emptyCol] = current;
-            current.setFrame(emptyCol * beadWidth, emptyRow * beadWidth,
-                    beadWidth, beadWidth);
+            current.setFrame(emptyCol * beadWidth, emptyRow * beadWidth, beadWidth, beadWidth);
             current = null;
         }
-//        paint(this.getGraphics());
         repaint();
     }
 
     public boolean checkAndEliminate() {
         if (eliminateList == null)
             (eliminateList = new ArrayList<ArrayList<MyPoint>>()).clear();
-        else
-            eliminateList.clear();
+        else eliminateList.clear();
         if (eliminateBeads == null)
             (eliminateBeads = new HashSet<MyPoint>()).clear();
-        else
-            eliminateBeads.clear();
-//        for (int row = 0; row < ROWS; ++row) {
-        for (int row = ROWS - 1; row >= 0; --row) {
-            for (int col = 1; col < COLS - 1; ++col) {
+        else eliminateBeads.clear();
+        for (int row = ROWS - 1; row >= 0; --row)
+            for (int col = 1; col < COLS - 1; ++col)
                 col = checkRowBead(row, col);
-            }
-        }
-        for (int col = 0; col < COLS; ++col) {
-            for (int row = 1; row < ROWS - 1; ++row) {
+        for (int col = 0; col < COLS; ++col)
+            for (int row = 1; row < ROWS - 1; ++row)
                 row = checkColBead(row, col);
-            }
-        }
         System.out.println("" + eliminateBeads.size());
-        if (eliminateBeads.isEmpty()) {
-            return false;
-        }
+        if (eliminateBeads.isEmpty()) return false;
         buildList();
         eliminate();
         return true;
     }
 
     private void eliminate() {
-        for (int i = 0; i < eliminateList.size(); ++i) {
-            ArrayList<MyPoint> list = eliminateList.get(i);
+        for (ArrayList<MyPoint> list : eliminateList) {
             System.out.println("-list->>" + list.size());
-            for (int j = 0; j < list.size(); ++j) {
-                MyPoint point = list.get(j);
+            for (MyPoint point : list)
                 ellipse2ds[point.getRow()][point.getCol()] = null;
-            }
-            if (!initialized)
-                repaint();
+            if (!initialized) repaint();
             else {
                 repaint();
                 try {
@@ -182,11 +147,7 @@ public class PlayPanel extends JPanel {
             boolean noOne = false;
             for (int i = ROWS - 1; i >= 0; --i) {
                 if (ellipse2ds[i][j] == null) {
-                    if (noOne)
-                        ellipse2ds[i][j] = new ColorEllipse(j * beadWidth, i
-                                * beadWidth, beadWidth, beadWidth,
-                                COLORS[(int) (Math.random() * COLORS.length)]);
-                    else {
+                    if (!noOne) {
                         noOne = true;
                         for (int k = i - 1; k >= 0; --k) {
                             if (ellipse2ds[k][j] != null) {
@@ -195,35 +156,30 @@ public class PlayPanel extends JPanel {
                                 break;
                             }
                         }
-                        if (noOne) {
-                            ellipse2ds[0][j] = new ColorEllipse(
-                                    j * beadWidth,
-                                    0 * beadWidth,
-                                    beadWidth,
-                                    beadWidth,
-                                    COLORS[(int) (Math.random() * COLORS.length)]);
-                            beadMotion(0, j, i, j);
-                        }
+                    }
+                    if (noOne) {
+                        ellipse2ds[0][j] = new ColorEllipse(
+                                j * beadWidth,
+                                0,// 0 * beadWidth,
+                                beadWidth,
+                                beadWidth,
+                                COLORS[(int) (Math.random() * COLORS.length)]);
+                        beadMotion(0, j, i, j);
                     }
                 }
             }
         }
         repaint();
-//        paint(this.getGraphics());
     }
 
     private int checkRowBead(int row, int col) {
         int result = col;
-        if (!getColor(row, col).equals(getColor(row, col - 1)))
-            return result;
-        if (!getColor(row, col).equals(getColor(row, col + 1)))
-            return result;
-
+        if (!getColor(row, col).equals(getColor(row, col - 1))) return result;
+        if (!getColor(row, col).equals(getColor(row, col + 1))) return result;
         for (int i = -1; i < 2; ++i) {
             if (!eliminateBeads.contains(new MyPoint(row, col + i)))
                 eliminateBeads.add(new MyPoint(row, col + i));
         }
-
         result = col + 1;
         for (int i = col + 2; i < COLS; ++i) {
             if (getColor(row, col).equals(getColor(row, i))) {
@@ -233,22 +189,17 @@ public class PlayPanel extends JPanel {
             } else
                 break;
         }
-
         return result;
     }
 
     private int checkColBead(int row, int col) {
         int result = row;
-        if (!getColor(row, col).equals(getColor(row - 1, col)))
-            return result;
-        if (!getColor(row, col).equals(getColor(row + 1, col)))
-            return result;
-
+        if (!getColor(row, col).equals(getColor(row - 1, col))) return result;
+        if (!getColor(row, col).equals(getColor(row + 1, col))) return result;
         for (int i = -1; i < 2; ++i) {
             if (!eliminateBeads.contains(new MyPoint(row + i, col)))
                 eliminateBeads.add(new MyPoint(row + i, col));
         }
-
         result = row + 1;
         for (int i = row + 2; i < ROWS; ++i) {
             if (getColor(row, col).equals(getColor(i, col))) {
@@ -258,7 +209,6 @@ public class PlayPanel extends JPanel {
             } else
                 break;
         }
-
         return result;
     }
 
@@ -267,8 +217,7 @@ public class PlayPanel extends JPanel {
         Queue<MyPoint> queue = new LinkedList<MyPoint>();
         while (!eliminateBeads.isEmpty()) {
             queue.clear();
-            Iterator<MyPoint> iter = eliminateBeads.iterator();
-            MyPoint aPoint = iter.next();
+            MyPoint aPoint = eliminateBeads.iterator().next();
             queue.add(aPoint);
             ArrayList<MyPoint> list = new ArrayList<MyPoint>();
             list.add(aPoint);
@@ -277,48 +226,36 @@ public class PlayPanel extends JPanel {
                 MyPoint center = queue.poll();
                 // UP
                 if ((center.getRow() - 1 >= 0)
-                        && (eliminateBeads.contains(new MyPoint(
-                        center.getRow() - 1, center.getCol())))
-                        && getColor(center.getRow(), center.getCol()).equals(
-                        getColor(center.getRow() - 1, center.getCol()))) {
-                    MyPoint point = new MyPoint(center.getRow() - 1,
-                            center.getCol());
+                        && (eliminateBeads.contains(new MyPoint(center.getRow() - 1, center.getCol())))
+                        && getColor(center.getRow(), center.getCol()).equals(getColor(center.getRow() - 1, center.getCol()))) {
+                    MyPoint point = new MyPoint(center.getRow() - 1, center.getCol());
                     list.add(point);
                     queue.offer(point);
                     eliminateBeads.remove(point);
                 }
                 // DOWN
                 if ((center.getRow() + 1 < ROWS)
-                        && (eliminateBeads.contains(new MyPoint(
-                        center.getRow() + 1, center.getCol())))
-                        && getColor(center.getRow(), center.getCol()).equals(
-                        getColor(center.getRow() + 1, center.getCol()))) {
-                    MyPoint point = new MyPoint(center.getRow() + 1,
-                            center.getCol());
+                        && (eliminateBeads.contains(new MyPoint(center.getRow() + 1, center.getCol())))
+                        && getColor(center.getRow(), center.getCol()).equals(getColor(center.getRow() + 1, center.getCol()))) {
+                    MyPoint point = new MyPoint(center.getRow() + 1, center.getCol());
                     list.add(point);
                     queue.offer(point);
                     eliminateBeads.remove(point);
                 }
                 // LEFT
                 if ((center.getCol() - 1 >= 0)
-                        && (eliminateBeads.contains(new MyPoint(
-                        center.getRow(), center.getCol() - 1)))
-                        && getColor(center.getRow(), center.getCol()).equals(
-                        getColor(center.getRow(), center.getCol() - 1))) {
-                    MyPoint point = new MyPoint(center.getRow(),
-                            center.getCol() - 1);
+                        && (eliminateBeads.contains(new MyPoint(center.getRow(), center.getCol() - 1)))
+                        && getColor(center.getRow(), center.getCol()).equals(getColor(center.getRow(), center.getCol() - 1))) {
+                    MyPoint point = new MyPoint(center.getRow(), center.getCol() - 1);
                     list.add(point);
                     queue.offer(point);
                     eliminateBeads.remove(point);
                 }
                 // RIGHT
                 if ((center.getCol() + 1 < COLS)
-                        && (eliminateBeads.contains(new MyPoint(
-                        center.getRow(), center.getCol() + 1)))
-                        && getColor(center.getRow(), center.getCol()).equals(
-                        getColor(center.getRow(), center.getCol() + 1))) {
-                    MyPoint point = new MyPoint(center.getRow(),
-                            center.getCol() + 1);
+                        && (eliminateBeads.contains(new MyPoint(center.getRow(), center.getCol() + 1)))
+                        && getColor(center.getRow(), center.getCol()).equals(getColor(center.getRow(), center.getCol() + 1))) {
+                    MyPoint point = new MyPoint(center.getRow(), center.getCol() + 1);
                     list.add(point);
                     queue.offer(point);
                     eliminateBeads.remove(point);
@@ -329,9 +266,7 @@ public class PlayPanel extends JPanel {
     }
 
     private int correctCol(Point2D point) {
-        return Math
-                .max(0, Math.min((int) (point.getX() / beadWidth), COLS - 1));
-
+        return Math.max(0, Math.min((int) (point.getX() / beadWidth), COLS - 1));
     }
 
     private int correctCol(int col) {
@@ -339,8 +274,7 @@ public class PlayPanel extends JPanel {
     }
 
     private int correctRow(Point2D point) {
-        return Math
-                .max(0, Math.min((int) (point.getY() / beadWidth), ROWS - 1));
+        return Math.max(0, Math.min((int) (point.getY() / beadWidth), ROWS - 1));
     }
 
     private int correctRow(int row) {
@@ -350,24 +284,19 @@ public class PlayPanel extends JPanel {
     private Color getColor(int row, int col) {
         row = correctRow(row);
         col = correctCol(col);
-        return (ellipse2ds[row][col] == null) ? null : ellipse2ds[row][col]
-                .getColor();
+        return (ellipse2ds[row][col] == null) ? null : ellipse2ds[row][col].getColor();
     }
 
     private void beadMotion(int oldRow, int oldCol, int newRow, int newCol) {
         oldRow = correctRow(oldRow);
         oldCol = correctCol(oldCol);
-        if (ellipse2ds[oldRow][oldCol] == null)
-            return;
+        if (ellipse2ds[oldRow][oldCol] == null) return;
         newRow = correctRow(newRow);
         newCol = correctCol(newCol);
-        if (ellipse2ds[newRow][newCol] != null)
-            return;
+        if (ellipse2ds[newRow][newCol] != null) return;
         final int toRow = newRow, toCol = newCol, fromRow = oldRow, fromCol = oldCol;
         ellipse2ds[newRow][newCol] = ellipse2ds[oldRow][oldCol];
         ellipse2ds[oldRow][oldCol] = null;
-//        ellipse2ds[newRow][newCol].setFrame(newCol * beadWidth, newRow
-//                * beadWidth, beadWidth, beadWidth);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -396,21 +325,17 @@ public class PlayPanel extends JPanel {
     private class MouseHandler extends MouseAdapter {
         @Override
         public void mousePressed(MouseEvent e) {
-            // TODO Auto-generated method stub
             super.mousePressed(e);
-            if (!canMove)
-                return;
+            if (!canMove) return;
             current = findAndTake(e.getPoint());
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            // TODO Auto-generated method stub
             super.mouseReleased(e);
-            if (!canMove)
-                return;
+            if (!canMove) return;
             canMove = false;
-            drop(e.getPoint());
+            drop();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -432,19 +357,14 @@ public class PlayPanel extends JPanel {
     private class MouseMotionHandler extends MouseMotionAdapter {
         @Override
         public void mouseDragged(MouseEvent e) {
-            // TODO Auto-generated method stub
             super.mouseDragged(e);
-            if (!canMove)
-                return;
+            if (!canMove) return;
             if (current != null) {
                 Point2D point = e.getPoint();
-                current.setFrame(point.getX() - beadWidth / 2, point.getY()
-                        - beadWidth / 2, beadWidth, beadWidth);
-
+                current.setFrame(point.getX() - beadWidth / 2, point.getY() - beadWidth / 2, beadWidth, beadWidth);
                 int col = correctCol(point);
                 int row = correctRow(point);
-                if (ellipse2ds[row][col] != null
-                        && ellipse2ds[row][col].contains(point)) {
+                if (ellipse2ds[row][col] != null && ellipse2ds[row][col].contains(point)) {
                     isSwap = true;
                     beadMotion(row, col, emptyRow, emptyCol);
                     emptyRow = row;
