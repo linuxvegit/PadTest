@@ -46,14 +46,16 @@ public class PlayPanel extends JPanel {
         super.paintComponent(g);
         if (!initialized) {
             freshSize(true);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (checkAndEliminate())
-                        fallBeads();
-                    initialized = true;
-                }
-            }).start();
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    while (checkAndEliminate())
+//                        fallBeads();
+//                    initialized = true;
+//                }
+//            }).start();
+            while (checkAndEliminate()) fallBeads();
+            initialized = true;
         }
         Graphics2D graphics2d = (Graphics2D) g;
         drawBeads(graphics2d);
@@ -414,14 +416,15 @@ public class PlayPanel extends JPanel {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while (isSwap && checkAndEliminate()) {
-                        fallBeads();
+                    while (isSwap && checkAndEliminate())
                         try {
                             Thread.sleep(FALLDELAY);
+                            fallBeads();
+                            Thread.sleep(FALLDELAY * 2);
                         } catch (InterruptedException e1) {
                             e1.printStackTrace();
                         }
-                    }
+
                     isSwap = false;
                 }
             }).start();
