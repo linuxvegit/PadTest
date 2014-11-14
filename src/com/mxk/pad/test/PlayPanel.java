@@ -147,7 +147,6 @@ public class PlayPanel extends JPanel {
         }
         System.out.println("" + eliminateBeads.size());
         if (eliminateBeads.isEmpty()) {
-            canMove = true;
             return false;
         }
         buildList();
@@ -211,11 +210,9 @@ public class PlayPanel extends JPanel {
         }
         repaint();
 //        paint(this.getGraphics());
-        canMove = true;
     }
 
     private int checkRowBead(int row, int col) {
-        canMove = false;
         int result = col;
         if (!getColor(row, col).equals(getColor(row, col - 1)))
             return result;
@@ -412,6 +409,7 @@ public class PlayPanel extends JPanel {
             super.mouseReleased(e);
             if (!canMove)
                 return;
+            canMove = false;
             drop(e.getPoint());
             new Thread(new Runnable() {
                 @Override
@@ -424,8 +422,8 @@ public class PlayPanel extends JPanel {
                         } catch (InterruptedException e1) {
                             e1.printStackTrace();
                         }
-
                     isSwap = false;
+                    canMove = true;
                 }
             }).start();
         }
